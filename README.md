@@ -1,6 +1,6 @@
 # Prototype MyPertamina: QR Langsung, Selalu Jelas
 
-> **Live Demo (Vercel):** Aplikasi telah di-deploy ke Vercel dan dapat diakses publik.
+> **Live Demo (Vercel):** [https://prototypeneomypertamina.vercel.app/](https://prototypeneomypertamina.vercel.app/)
 
 Situs statis interaktif (HTML + CSS + JavaScript murni) tanpa *build step* dan tanpa *backend*, dirancang untuk memandu **Usability Testing (UT)** serta demonstrasi perbaikan UX aplikasi **MyPertamina** — khususnya mempercepat dan mempermudah akses kode QR transaksi Subsidi Tepat di SPBU.
 
