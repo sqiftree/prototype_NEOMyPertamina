@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prototype MyPertamina: QR Langsung, Selalu Jelas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#E6EBF1; --panel:#FFFFFF; --panel-2:#F1F4F8; --ink:#14202B; --ink-2:#4A5A6A; --line:#D5DCE5;
+  --accent:#0B5CAD; --accent-ink:#FFFFFF; --ok:#12805C; --warn:#B45309;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E151D; --panel:#17212C; --panel-2:#1F2B38; --ink:#EAF0F6; --ink-2:#A6B4C3; --line:#2C3B4A;
+    --accent:#5AA9F0; --accent-ink:#06213D; --ok:#4CC9A0; --warn:#F2B25C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E151D; --panel:#17212C; --panel-2:#1F2B38; --ink:#EAF0F6; --ink-2:#A6B4C3; --line:#2C3B4A;
+  --accent:#5AA9F0; --accent-ink:#06213D; --ok:#4CC9A0; --warn:#F2B25C;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.page{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.35rem;line-height:1.25;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+.lead{margin:0 0 20px;color:var(--ink-2);max-width:62ch;font-size:.95rem}
+.bench{display:grid;gap:24px;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:900px){.bench{grid-template-columns:400px minmax(0,1fr)} .phone-col{position:sticky;top:16px}}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+.phone-note{font-size:.8rem;color:var(--ink-2);text-align:center;max-width:36ch;margin:0}
+
+/* ---------- Phone (always light: it mimics the app) ---------- */
+.phone{
+  --p-red:#DD1122; --p-red-d:#B80D1B; --p-ink:#1B1F27; --p-sub:#5B6472; --p-bg:#F3F5F8; --p-line:#E3E7EE;
+  --p-ok:#0F7A55; --p-ok-bg:#DDF5EA; --p-warn:#92400E; --p-warn-bg:#FDEBC8; --p-blue:#0B5CAD; --p-blue-bg:#DEEBFA;
+  position:relative;width:min(100%,380px);height:min(760px,calc(100dvh - 32px));min-height:640px;
+  background:#0c0f14;border-radius:42px;padding:10px;box-shadow:0 18px 40px rgba(10,20,35,.28);
+  color:var(--p-ink);
+}
+.screen{position:relative;height:100%;border-radius:32px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.status{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 6px;font-size:.75rem;font-weight:700;color:var(--p-ink);flex:none}
+.status .sig{letter-spacing:2px;font-weight:800}
+.glare{position:absolute;inset:0;background:rgba(255,255,255,.55);pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
+.phone[data-glare="on"] .glare{opacity:1}
+.phone[data-glare="on"][data-boost="on"] .glare{opacity:.08}
+.view{flex:1;min-height:0;display:flex;flex-direction:column;overflow:auto}
+.svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* launcher */
+.launcher{flex:1;background:linear-gradient(160deg,#25405f,#10202f 70%);padding:28px 22px;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:88px;gap:8px;align-content:start;color:#fff}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;color:#fff;font-size:.68rem;padding:0}
+.app i{width:54px;height:54px;border-radius:15px;background:rgba(255,255,255,.16);display:block}
+.app.mp i{background:var(--p-red);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:1rem;color:#fff;letter-spacing:-.02em}
+.launcher-hint{grid-column:1/-1;align-self:end;font-size:.78rem;opacity:.75;text-align:center;margin-top:220px}
+
+/* header/top bars */
+.topbar{display:flex;align-items:center;gap:10px;padding:6px 16px 10px;flex:none}
+.brand{font-weight:800;font-size:1.05rem;letter-spacing:-.02em}
+.brand b{color:var(--p-red)}
+.badge{margin-left:auto;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--p-blue-bg);color:var(--p-blue)}
+.pill-off{font-size:.7rem;font-weight:700;padding:4px 9px;border-radius:99px;background:var(--p-warn-bg);color:var(--p-warn);display:inline-flex;gap:5px;align-items:center}
+.pill-off .svg{width:14px;height:14px}
+.iconbtn{width:44px;height:44px;border:0;background:var(--p-bg);border-radius:14px;color:var(--p-ink);display:grid;place-items:center;flex:none}
+
+/* PIN */
+.pin-wrap{padding:0 22px 14px;display:flex;flex-direction:column;flex:1}
+.who{display:flex;align-items:center;gap:10px;background:var(--p-bg);border-radius:16px;padding:10px 12px;margin:4px 0 16px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--p-blue);color:#fff;font-weight:800;font-size:.8rem;display:grid;place-items:center}
+.who small{display:block;color:var(--p-sub);font-size:.72rem}
+.who strong{font-size:.86rem}
+.pin-title{text-align:center;font-weight:800;font-size:1.1rem;margin:6px 0 2px}
+.pin-sub{text-align:center;color:var(--p-sub);font-size:.8rem;margin:0 0 14px}
+.dots{display:flex;justify-content:center;gap:14px;margin-bottom:14px}
+.dots span{width:14px;height:14px;border-radius:50%;border:2px solid #B8C0CC}
+.dots span.on{background:var(--p-ink);border-color:var(--p-ink)}
+.bio{width:100%;height:48px;border-radius:14px;border:1.5px solid var(--p-line);background:#fff;font-weight:700;font-size:.88rem;display:flex;gap:8px;align-items:center;justify-content:center;color:var(--p-ink);margin-bottom:12px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.key{height:52px;border-radius:14px;border:0;background:var(--p-bg);font-size:1.25rem;font-weight:700;color:var(--p-ink)}
+.key.plain{background:none;font-size:.82rem;color:var(--p-blue);font-weight:700}
+.remember{display:flex;gap:12px;align-items:center;background:var(--p-blue-bg);border-radius:14px;padding:10px 12px;margin-top:auto;border:0;text-align:left;width:100%;color:var(--p-ink)}
+.remember strong{font-size:.82rem;display:block}
+.remember small{font-size:.72rem;color:var(--p-sub)}
+.switch{width:44px;height:26px;border-radius:99px;background:#B8C0CC;position:relative;flex:none;transition:background .15s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch[data-on="1"]{background:var(--p-ok)}
+.switch[data-on="1"]::after{transform:translateX(18px)}
+
+/* home */
+.hello{padding:0 16px}
+.hello small{color:var(--p-sub);font-size:.75rem}
+.hello h2{margin:0;font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ver{font-size:.68rem;font-weight:700;color:var(--p-ok);background:var(--p-ok-bg);padding:3px 8px;border-radius:99px}
+.wallet{margin:12px 16px 0;padding:12px 14px;background:var(--p-bg);border-radius:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wallet small{font-size:.7rem;color:var(--p-sub);display:block}
+.wallet strong{font-size:1.02rem;font-weight:800}
+.sect{margin:14px 16px 6px;font-size:.78rem;font-weight:700;color:var(--p-sub)}
+.rows{margin:0 16px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--p-line);border-radius:16px;background:#fff;text-align:left;color:var(--p-ink);width:100%;min-height:56px}
+.row .ri{width:36px;height:36px;border-radius:11px;background:var(--p-blue-bg);color:var(--p-blue);display:grid;place-items:center;flex:none}
+.row b{font-size:.86rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row small{color:var(--p-sub);font-size:.74rem;display:block}
+.chip{font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:99px}
+.chip.ok{background:var(--p-ok-bg);color:var(--p-ok)}
+.chip.warn{background:var(--p-warn-bg);color:var(--p-warn)}
+.spacer{flex:1;min-height:8px}
+.cta{margin:8px 16px 12px;border:0;border-radius:24px;background:var(--p-red);color:#fff;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 8px 20px rgba(221,17,34,.35)}
+.cta .qrico{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.cta .qrico .svg{width:28px;height:28px}
+.cta strong{font-size:1.12rem;font-weight:800;line-height:1.2}
+.cta span{font-size:.76rem;opacity:.92}
+.grid{margin:0 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
+.gi{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;font-size:.68rem;font-weight:600;color:var(--p-ink);text-align:center;padding:2px}
+.gi i{width:48px;height:48px;border-radius:15px;background:var(--p-blue-bg);color:var(--p-blue);display:grid;place-items:center}
+
+/* bottom nav */
+.nav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:6px 8px 12px;border-top:1px solid var(--p-line);background:#fff}
+.nb{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.66rem;font-weight:600;color:var(--p-sub);padding:6px 0;min-height:48px}
+.nb[aria-current="page"]{color:var(--p-red)}
+.nb.scan .disc{width:56px;height:56px;border-radius:50%;background:var(--p-red);color:#fff;display:grid;place-items:center;margin-top:-26px;box-shadow:0 6px 14px rgba(221,17,34,.4)}
+.nb.scan{color:var(--p-red)}
+
+/* QR screen */
+.banner{margin:0 16px 10px;padding:10px 12px;border-radius:14px;display:flex;gap:10px;align-items:flex-start;font-size:.8rem}
+.banner .svg{margin-top:2px}
+.banner strong{display:block;font-size:.86rem}
+.banner.info{background:var(--p-blue-bg);color:#0A3E75}
+.banner.warn{background:var(--p-warn-bg);color:var(--p-warn)}
+.banner.bad{background:#FBDADD;color:#8A0F1B}
+.banner button{margin-top:6px;border:0;background:rgba(0,0,0,.08);color:inherit;font-weight:700;font-size:.78rem;border-radius:10px;padding:8px 12px;min-height:36px}
+.veh{margin:0 16px 8px;font-size:.8rem;color:var(--p-sub)}
+.veh b{color:var(--p-ink)}
+.plate{margin:0 auto;width:min(236px,68%);aspect-ratio:1;background:#fff;border:1.5px solid var(--p-line);border-radius:20px;padding:12px;box-shadow:0 4px 14px rgba(20,30,50,.08)}
+.plate svg{width:100%;height:100%;display:block}
+.stat{margin:10px auto 0;display:inline-flex;gap:6px;align-items:center;font-size:.8rem;font-weight:700;padding:6px 12px;border-radius:99px}
+.stat.ok{background:var(--p-ok-bg);color:var(--p-ok)}
+.stat.warn{background:var(--p-warn-bg);color:var(--p-warn)}
+.stat .svg{width:16px;height:16px}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center}
+.synced{font-size:.74rem;color:var(--p-sub);margin:6px 0 0}
+.two{margin:12px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two div{background:var(--p-bg);border-radius:14px;padding:10px 12px}
+.two small{display:block;font-size:.68rem;color:var(--p-sub)}
+.two strong{font-size:1rem}
+.bright{margin:10px 16px 0;font-size:.74rem;color:var(--p-sub);display:flex;gap:6px;align-items:center;justify-content:center}
+.bright .svg{width:16px;height:16px}
+.btns{margin:12px 16px 12px;display:flex;flex-direction:column;gap:8px}
+.btn{min-height:50px;border-radius:16px;border:0;font-weight:800;font-size:.92rem;display:flex;gap:8px;align-items:center;justify-content:center;padding:0 14px}
+.btn.primary{background:var(--p-red);color:#fff}
+.btn.soft{background:var(--p-blue-bg);color:var(--p-blue)}
+.btn.ghost{background:var(--p-bg);color:var(--p-ink)}
+.fix{margin:6px 16px 0}
+.fix h3{font-size:1.15rem;margin:8px 0 6px;font-weight:800}
+.fix p{font-size:.88rem;margin:0 0 10px;color:var(--p-ink)}
+.fix ol{margin:0 0 14px;padding-left:20px;font-size:.86rem}
+.fix li{margin-bottom:6px}
+.big-icon{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--p-warn-bg);color:var(--p-warn)}
+.big-icon .svg{width:30px;height:30px}
+
+.toast{position:absolute;left:16px;right:16px;bottom:84px;background:#1B1F27;color:#fff;padding:12px 14px;border-radius:14px;font-size:.82rem;z-index:30;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s}
+.toast[data-show="1"]{opacity:1;transform:none}
+
+/* ---------- Facilitator panel ---------- */
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}
+.card h2{margin:0 0 4px;font-size:1rem;font-weight:800}
+.card > p{margin:0 0 12px;color:var(--ink-2);font-size:.86rem}
+.field{margin-bottom:12px}
+.field > span{display:block;font-size:.82rem;font-weight:700;margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1.5px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:.82rem;font-weight:600;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.task-btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.task-btns button{text-align:left;border:1.5px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:12px;padding:10px 12px;font-size:.82rem;min-height:56px}
+.task-btns button strong{display:block;font-size:.86rem}
+.task-btns button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],select,textarea{font:inherit;font-size:.86rem;color:var(--ink);background:var(--panel-2);border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px}
+input[type=text]{width:110px}
+textarea{width:100%;min-height:120px;font-size:.78rem;resize:vertical}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.86rem;min-height:42px}
+.secondary{background:var(--panel-2);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:600;font-size:.84rem;min-height:42px}
+.meter{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.meter div{background:var(--panel-2);border-radius:12px;padding:10px 12px}
+.meter small{display:block;color:var(--ink-2);font-size:.72rem}
+.meter strong{font-size:1.3rem;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:.8rem;min-width:420px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:700;color:var(--ink-2)}
+.hint{font-size:.78rem;color:var(--ink-2);margin:8px 0 0}
+.checkline{display:flex;gap:8px;align-items:center;font-size:.84rem;margin:0 0 12px}
+.checkline input{width:20px;height:20px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Prototype MyPertamina: QR Langsung, Selalu Jelas</h1>
+  <p class="lead">Kiri: layar yang dipegang peserta uji. Kanan: panel fasilitator untuk mengatur kondisi (sinyal, server, status QR, silau) dan mencatat waktu serta ketukan per tugas. Ini prototype low-fidelity, QR di dalamnya hanya contoh dan tidak bisa dipindai.</p>
+
+  <div class="bench">
+    <div class="phone-col">
+      <div class="phone" id="phone" data-glare="off" data-boost="off">
+        <div class="screen" id="screen" aria-live="polite"></div>
+        <div class="glare" aria-hidden="true"></div>
+      </div>
+      <p class="phone-note" id="phoneNote">Mulai dari layar utama HP: ketuk ikon MyPertamina.</p>
+    </div>
+
+    <div class="side">
+      <section class="card" aria-labelledby="h-skenario">
+        <h2 id="h-skenario">Tugas uji (Day 5)</h2>
+        <p>Pilih tugas, isi kode peserta, lalu tekan Mulai. Kondisi bawaan tugas otomatis diterapkan.</p>
+        <div class="task-btns" id="taskBtns" role="group" aria-label="Pilih tugas"></div>
+        <p class="hint" id="taskText"></p>
+      </section>
+
+      <section class="card" aria-labelledby="h-ukur">
+        <h2 id="h-ukur">Pengukuran</h2>
+        <div class="inline">
+          <label>Peserta <input type="text" id="pid" value="P1" aria-label="Kode peserta"></label>
+          <label class="checkline" style="margin:0"><input type="checkbox" id="applyPreset" checked> Terapkan kondisi bawaan saat mulai</label>
+        </div>
+        <div class="inline" style="margin-top:12px">
+          <button class="primary" id="btnStart">Mulai tugas</button>
+          <button class="secondary" id="btnStop">Selesai</button>
+          <button class="secondary" id="btnMiss">Salah ketuk +1</button>
+        </div>
+        <div class="meter" aria-live="off">
+          <div><small>Waktu</small><strong id="mTime">0,0 dtk</strong></div>
+          <div><small>Ketukan</small><strong id="mTaps">0</strong></div>
+          <div><small>Salah ketuk</small><strong id="mMiss">0</strong></div>
+        </div>
+        <div class="inline">
+          <label>Hasil tugas
+            <select id="outcome"><option>Ya</option><option>Sebagian</option><option>Gagal</option></select>
+          </label>
+          <button class="primary" id="btnSave">Simpan ke tabel</button>
+          <span class="hint" id="benchMsg" style="margin:0"></span>
+        </div>
+        <p class="hint">Timer berhenti otomatis saat QR tampil (T1, T2, T3, T5) atau saat layar penyebab masalah tampil (T4). Ketukan dihitung dari setiap sentuhan di layar HP.</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-kondisi">
+        <h2 id="h-kondisi">Kondisi simulasi</h2>
+        <p>Ubah kapan saja, misalnya untuk mendemokan setiap layar.</p>
+        <div id="ctrls"></div>
+        <div class="inline"><button class="secondary" id="btnReset">Kembalikan ke layar utama HP</button></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-hasil">
+        <h2 id="h-hasil">Hasil yang tersimpan</h2>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Peserta</th><th>Tugas</th><th>Waktu (dtk)</th><th>Ketukan</th><th>Salah ketuk</th><th>Hasil</th></tr></thead>
+            <tbody id="rows"><tr><td colspan="6" style="color:var(--ink-2)">Belum ada data.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="hint">Salin teks di bawah ke Excel/Sheets (dipisah tab).</p>
+        <textarea id="tsv" readonly aria-label="Hasil dalam format tab"></textarea>
+        <div class="inline" style="margin-top:8px"><button class="secondary" id="btnCopy">Pilih dan salin</button><button class="secondary" id="btnClear">Hapus tabel</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ---------- state ---------- */
+  var S = {screen:'launcher', sesi:'persisten', sinyal:'online', server:'normal', qr:'aktif', sync:'hari', beranda:'alt2', glare:'off', pin:'', remember:true, toast:''};
+  var B = {running:false, frozen:false, t0:0, elapsed:0, taps:0, misses:0, task:'T1', rows:[]};
+  var TASKS = {
+    T1:{name:'T1 QR di SPBU', text:'"Anda di SPBU dan sedang antre. Tampilkan QR Anda sekarang."', preset:{sesi:'persisten',sinyal:'online',server:'normal',qr:'aktif',sync:'hari'}},
+    T2:{name:'T2 QR tanpa sinyal', text:'"Sinyal di SPBU hilang. Tampilkan QR Anda."', preset:{sesi:'persisten',sinyal:'offline',server:'normal',qr:'aktif',sync:'hari'}},
+    T3:{name:'T3 Satu tangan', text:'"Pegang HP dengan satu tangan saja, lalu tampilkan QR Anda."', preset:{sesi:'persisten',sinyal:'online',server:'normal',qr:'aktif',sync:'hari'}},
+    T4:{name:'T4 QR bermasalah', text:'"QR Anda bermasalah. Apa penyebabnya dan apa yang harus Anda lakukan?"', preset:{sesi:'persisten',sinyal:'online',server:'normal',qr:'bermasalah',sync:'hari'}},
+    T5:{name:'T5 Sinyal lemah', text:'"Sinyal Anda lemah. Apa yang terjadi dan apakah QR masih bisa dipakai?"', preset:{sesi:'persisten',sinyal:'lemah',server:'normal',qr:'aktif',sync:'hari'}}
+  };
+  var CTRL = [
+    ['sesi','Sesi login',[['persisten','Persisten'],['habis','Habis (minta PIN)']]],
+    ['sinyal','Sinyal',[['online','Baik'],['lemah','Lemah'],['offline','Tidak ada']]],
+    ['server','Server',[['normal','Normal'],['gangguan','Gangguan']]],
+    ['qr','Status QR di server',[['aktif','Aktif'],['bermasalah','Bermasalah']]],
+    ['sync','Sinkron terakhir',[['hari','Hari ini 09:15'],['kemarin','Kemarin 18:40'],['lama','3 hari lalu']]],
+    ['beranda','Beranda',[['alt2','Alt. 2 Fokus aksi'],['alt1','Alt. 1 Minimalis']]],
+    ['glare','Simulasi silau',[['off','Mati'],['on','Nyala']]]
+  ];
+  var SYNC_TXT = {hari:'hari ini 09:15', kemarin:'kemarin 18:40', lama:'3 hari lalu'};
+
+  /* ---------- icons ---------- */
+  var P = {
+    home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M18 20h3v-3"/>',
+    list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    wifioff:'<path d="M2 2l20 20M8.5 16.4a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 4.2-2.7M10.7 5.1A15 15 0 0 1 22 8.8M5 12.9a10 10 0 0 1 5.2-2.8M14 10.3a10 10 0 0 1 5 2.6"/><path d="M12 20h.01"/>',
+    alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/>',
+    check:'<path d="m5 12 5 5L20 7"/>',
+    back:'<path d="m15 18-6-6 6-6"/>',
+    refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
+    server:'<rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    bs:'<path d="M21 5H9l-6 7 6 7h12z"/><path d="M14 9l4 6M18 9l-4 6"/>',
+    finger:'<path d="M12 11c0 3-1 5-2 7M8 9a4 4 0 0 1 8 0c0 2-.3 4-1 6M5 11a7 7 0 0 1 14 0c0 2 0 3-.5 5"/>',
+    grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    tag:'<path d="M20 12 12 20 4 12V4h8z"/><path d="M8 8h.01"/>',
+    truck:'<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+    shield:'<path d="M12 3 4 6v6c0 4.5 3.2 7.6 8 9 4.8-1.4 8-4.5 8-9V6z"/>',
+    receipt:'<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>'
+  };
+  function ic(n,label){return '<svg class="svg" viewBox="0 0 24 24" '+(label?'role="img" aria-label="'+label+'"':'aria-hidden="true"')+'>'+P[n]+'</svg>';}
+
+  /* ---------- fake QR ---------- */
+  function fakeQR(){
+    var n=25, seed=90211, cells=[];
+    function rnd(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return ((seed>>>0)%1000)/1000;}
+    function inFinder(x,y){return (x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9);}
+    var d='';
+    for(var y=0;y<n;y++)for(var x=0;x<n;x++){
+      if(inFinder(x,y))continue;
+      if(x>9&&x<15&&y>9&&y<15)continue;
+      if(rnd()>0.52)d+='M'+x+' '+y+'h1v1h-1z';
+    }
+    function finder(ox,oy){return '<rect x="'+ox+'" y="'+oy+'" width="7" height="7" fill="#111"/><rect x="'+(ox+1)+'" y="'+(oy+1)+'" width="5" height="5" fill="#fff"/><rect x="'+(ox+2)+'" y="'+(oy+2)+'" width="3" height="3" fill="#111"/>';}
+    return '<svg viewBox="-1 -1 27 27" role="img" aria-label="Contoh QR Code"><path d="'+d+'" fill="#111"/>'+finder(0,0)+finder(n-7,0)+finder(0,n-7)+'<rect x="10" y="10" width="5" height="5" rx="1" fill="#DD1122"/><path d="m11.2 12.6 1 1 1.8-2" stroke="#fff" stroke-width=".7" fill="none"/></svg>';
+  }
+  var QRSVG = fakeQR();
+
+  /* ---------- views ---------- */
+  function statusBar(){
+    var sig = S.sinyal==='online'?'●●●●':(S.sinyal==='lemah'?'●○○○':'✕');
+    var lbl = S.sinyal==='online'?'Sinyal baik':(S.sinyal==='lemah'?'Sinyal lemah':'Tidak ada sinyal');
+    return '<div class="status"><span>14:04</span><span class="sig" aria-label="'+lbl+'">'+sig+'</span></div>';
+  }
+  function nav(current){
+    function b(k,icn,t){return '<button class="nb" data-act="tab" data-v="'+k+'"'+(current===k?' aria-current="page"':'')+'>'+ic(icn)+t+'</button>';}
+    return '<nav class="nav" aria-label="Navigasi utama">'+b('home','home','Home')+b('poin','star','Poin')+
+      '<button class="nb scan" data-act="scan" aria-label="Scan dan tampilkan QR"><span class="disc">'+ic('qr')+'</span>Scan</button>'+
+      b('aktivitas','list','Aktivitas')+b('akun','user','Akun')+'</nav>';
+  }
+  function topHome(){
+    var off = S.sinyal!=='online' ? '<span class="pill-off">'+ic('wifioff')+(S.sinyal==='lemah'?'Sinyal lemah':'Offline')+'</span>' : '';
+    return '<div class="topbar"><span class="brand">My<b>Pertamina</b></span>'+off+'<span class="badge">Diamond</span></div>';
+  }
+  function vLauncher(){
+    var apps='';
+    for(var i=0;i<12;i++){ if(i===5){apps+='<button class="app mp" data-act="open-app" aria-label="Buka MyPertamina"><i>MP</i>MyPertamina</button>';} else {apps+='<span class="app" aria-hidden="true"><i></i></span>';} }
+    return '<div class="launcher">'+apps+'<div class="launcher-hint">Ketuk ikon MyPertamina</div></div>';
+  }
+  function vPin(){
+    var d=''; for(var i=0;i<6;i++)d+='<span class="'+(i<S.pin.length?'on':'')+'"></span>';
+    var keys=''; [1,2,3,4,5,6,7,8,9].forEach(function(k){keys+='<button class="key" data-act="key" data-v="'+k+'">'+k+'</button>';});
+    keys+='<button class="key plain" data-act="forgot">Lupa PIN?</button><button class="key" data-act="key" data-v="0">0</button><button class="key" data-act="del" aria-label="Hapus angka">'+ic('bs')+'</button>';
+    return '<div class="topbar"><span class="brand">My<b>Pertamina</b></span></div><div class="pin-wrap">'+
+      '<div class="who"><span class="avatar">OV</span><div><strong>Odyssey Dhia Victoriawan</strong><small>B 1908 PTM · Subsidi Pertalite</small></div></div>'+
+      '<div class="pin-title">Masukkan PIN transaksi</div><p class="pin-sub">Untuk membuka QR Subsidi Tepat</p>'+
+      '<div class="dots" aria-label="'+S.pin.length+' dari 6 angka terisi">'+d+'</div>'+
+      '<button class="bio" data-act="bio">'+ic('finger')+'Pakai sidik jari atau Face ID</button>'+
+      '<div class="keys">'+keys+'</div>'+
+      '<button class="remember" data-act="remember" role="switch" aria-checked="'+(S.remember?'true':'false')+'"><span class="switch" data-on="'+(S.remember?1:0)+'"></span><span><strong>Ingat sesi di perangkat ini</strong><small>Tidak perlu login lagi saat antre di SPBU</small></span></button></div>';
+  }
+  function vHome(){
+    var chip = S.qr==='aktif' ? '<span class="chip ok">QR aktif</span>' : '<span class="chip warn">Perlu diperbarui</span>';
+    if(S.beranda==='alt2'){
+      return topHome()+'<div class="hello"><small>Selamat datang</small><h2>Odyssey Dhia V. <span class="ver">Terverifikasi</span></h2></div>'+
+        '<div class="wallet"><div><small>LinkAja</small><strong>Rp 42.000</strong></div><div><small>MyPoint</small><strong>201 poin</strong></div></div>'+
+        '<div class="sect">Pintasan</div><div class="rows">'+
+        '<button class="row" data-act="scan"><span class="ri">'+ic('shield')+'</span><span><b>Subsidi Tepat '+chip+'</b><small>B 1908 PTM · Pertalite subsidi</small></span></button>'+
+        '<button class="row" data-act="toast" data-v="Riwayat ada di luar cakupan prototype ini."><span class="ri">'+ic('list')+'</span><span><b>Isi terakhir: 2,9 L</b><small>Kemarin 17:42 · SPBU 31.128.02</small></span></button>'+
+        '<button class="row" data-act="toast" data-v="Klaim nota ada di luar cakupan prototype ini."><span class="ri">'+ic('receipt')+'</span><span><b>Klaim nota SPBU</b><small>Pindai struk kertas manual</small></span></button></div>'+
+        '<div class="spacer"></div>'+
+        '<button class="cta" data-act="scan"><span class="qrico">'+ic('qr')+'</span><strong>Bayar &amp; pindai QR sekarang</strong><span>Dekatkan ke operator SPBU</span></button>'+nav('home');
+    }
+    var gi=[['Subsidi Tepat','shield','scan'],['Voucher','tag','x'],['Delivery','truck','x'],['Charging','server','x'],['Undian','star','x'],['Kios Matic','grid','x'],['Asuransi','shield','x'],['Lainnya','grid','x']];
+    var g=''; gi.forEach(function(x){g+='<button class="gi" data-act="'+(x[2]==='scan'?'scan':'toast')+'" data-v="Layanan ini di luar cakupan prototype."><i>'+ic(x[1])+'</i>'+x[0]+'</button>';});
+    return topHome()+'<div class="hello"><small>Selamat datang</small><h2>Odyssey Dhia V. <span class="ver">Terverifikasi</span></h2></div>'+
+      '<div class="wallet"><div><small>LinkAja</small><strong>Rp 42.000</strong></div><div><small>Total pengisian</small><strong>2,9 L</strong></div></div>'+
+      '<div class="sect">Layanan Pertamina</div><div class="grid">'+g+'</div><div class="spacer"></div>'+nav('home');
+  }
+  function qrView(){
+    if(S.sinyal==='offline')return 'offline';
+    if(S.sinyal==='lemah')return 'lemah';
+    if(S.server==='gangguan')return 'gangguan';
+    if(S.qr==='bermasalah')return 'masalah';
+    return 'ok';
+  }
+  function vQR(){
+    var v=qrView(), stale=S.sync!=='hari';
+    var head='<div class="topbar"><button class="iconbtn" data-act="back" aria-label="Kembali">'+ic('back')+'</button><span class="brand">QR Subsidi Tepat</span></div>';
+    if(v==='masalah'){
+      return head+'<div class="fix"><div class="big-icon">'+ic('alert')+'</div><h3>QR perlu diperbarui</h3>'+
+        '<p>Data kendaraan B 1908 PTM belum sinkron dengan data resmi. Pertalite subsidi belum bisa dibeli sampai data diperbarui.</p>'+
+        '<ol><li>Perbarui data di aplikasi (sekitar 1 menit).</li><li>Jika gagal, cek data STNK ke Samsat.</li></ol></div>'+
+        '<div class="spacer"></div><div class="btns"><button class="btn primary" data-act="fix-now">Perbaiki sekarang</button>'+
+        '<button class="btn soft" data-act="toast" data-v="Membuka peta Samsat terdekat (contoh).">Cari Samsat terdekat</button>'+
+        '<button class="btn ghost" data-act="toast" data-v="Data masalah ikut dilampirkan ke panggilan 135 (contoh).">Hubungi 135 dengan data ini</button></div>';
+    }
+    var banner='', stat='', sub='';
+    if(v==='ok'){
+      stat='<span class="stat ok">'+ic('check')+'Aktif · baru saja diperiksa</span>';
+      sub='<p class="synced">Diperiksa ke server barusan</p>';
+    } else {
+      stat='<span class="stat ok">'+ic('check')+'Tersimpan · siap dipindai</span>';
+      sub='<p class="synced">Terakhir sinkron: '+SYNC_TXT[S.sync]+'</p>';
+      if(v==='offline') banner='<div class="banner info">'+ic('wifioff')+'<div><strong>Mode offline aktif</strong>Tidak ada internet. QR tersimpan di HP tetap bisa dipakai.</div></div>';
+      if(v==='lemah') banner='<div class="banner info">'+ic('wifioff')+'<div><strong>Sinyal lemah</strong>QR dimuat dari penyimpanan HP supaya Anda tidak menunggu.</div></div>';
+      if(v==='gangguan') banner='<div class="banner info">'+ic('server')+'<div><strong>Server sedang gangguan</strong>Bukan masalah HP Anda. QR tersimpan tetap bisa dipakai.<br><button data-act="retry">Coba lagi</button></div></div>';
+      if(stale){
+        banner+='<div class="banner warn">'+ic('alert')+'<div><strong>QR terakhir diperiksa '+SYNC_TXT[S.sync]+'</strong>Sambungkan internet untuk memastikan QR masih berlaku.</div></div>';
+        stat='<span class="stat warn">'+ic('alert')+'Tersimpan · belum diperiksa ulang</span>';
+      }
+    }
+    return head+banner+'<div class="veh">Kendaraan <b>B 1908 PTM</b> · Pertalite subsidi</div>'+
+      '<div class="center"><div class="plate">'+QRSVG+'</div>'+stat+sub+'</div>'+
+      '<div class="two"><div><small>Kuota subsidi</small><strong>34,5 L</strong></div><div><small>Poin terakhir</small><strong>1.420</strong></div></div>'+
+      '<div class="bright">'+ic('sun')+'Kecerahan layar maksimal otomatis</div><div class="spacer"></div>'+
+      '<div class="btns"><button class="btn primary" data-act="refresh">'+ic('refresh')+'Segarkan QR</button><button class="btn ghost" data-act="toast" data-v="Panduan transaksi offline (contoh).">Bantuan transaksi offline</button></div>';
+  }
+
+  /* ---------- render ---------- */
+  var elScreen=document.getElementById('screen'), elPhone=document.getElementById('phone');
+  function render(){
+    var body='';
+    if(S.screen==='launcher') body=vLauncher();
+    else if(S.screen==='pin') body=vPin();
+    else if(S.screen==='home') body=vHome();
+    else if(S.screen==='qr') body=vQR();
+    elScreen.innerHTML=statusBar()+'<div class="view">'+body+'</div><div class="toast" id="toast" role="status" data-show="0"></div>';
+    elPhone.setAttribute('data-glare',S.glare);
+    elPhone.setAttribute('data-boost',S.screen==='qr'&&qrView()!=='masalah'?'on':'off');
+    var note=document.getElementById('phoneNote');
+    note.textContent = S.screen==='launcher'?'Mulai dari layar utama HP: ketuk ikon MyPertamina.':'';
+    // auto-stop
+    if(B.running && !B.frozen && S.screen==='qr'){
+      var v=qrView();
+      if((B.task==='T4' && v==='masalah') || (B.task!=='T4' && v!=='masalah')) freeze();
+    }
+    syncPanel();
+  }
+  var toastTimer;
+  function toast(t){
+    var el=document.getElementById('toast'); if(!el)return;
+    el.textContent=t; el.setAttribute('data-show','1');
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){var e=document.getElementById('toast'); if(e)e.setAttribute('data-show','0');},2200);
+  }
+
+  /* ---------- interactions ---------- */
+  elPhone.addEventListener('pointerdown',function(){
+    if(B.running && !B.frozen){B.taps++; syncMeter();}
+  });
+  elPhone.addEventListener('click',function(e){
+    var t=e.target.closest('[data-act]'); if(!t)return;
+    var a=t.getAttribute('data-act'), v=t.getAttribute('data-v');
+    if(a==='open-app'){S.screen=(S.sesi==='habis')?'pin':'home'; S.pin='';}
+    else if(a==='key'){ if(S.pin.length<6){S.pin+=v; if(S.pin.length===6){ S.screen='home'; S.pin=''; if(S.remember)S.sesi='persisten'; } } }
+    else if(a==='del'){S.pin=S.pin.slice(0,-1);}
+    else if(a==='bio'){S.screen='home'; S.pin=''; if(S.remember)S.sesi='persisten';}
+    else if(a==='remember'){S.remember=!S.remember;}
+    else if(a==='forgot'){render(); toast('Alur lupa PIN di luar cakupan prototype.'); return;}
+    else if(a==='scan'){S.screen='qr';}
+    else if(a==='back'){S.screen='home';}
+    else if(a==='tab'){ if(v==='home'){S.screen='home';} else {render(); toast('Menu ini di luar cakupan prototype.'); return;} }
+    else if(a==='toast'){render(); toast(v||'Di luar cakupan prototype.'); return;}
+    else if(a==='retry'){ render(); toast(S.server==='gangguan'?'Server masih gangguan. Coba lagi sebentar.':'Terhubung.'); return; }
+    else if(a==='refresh'){ render(); toast(S.sinyal==='online'&&S.server==='normal'?'QR diperbarui.':'Belum tersambung. QR tersimpan tetap bisa dipakai.'); return; }
+    else if(a==='fix-now'){S.qr='aktif'; S.sync='hari'; render(); toast('Data diperbarui. QR aktif kembali.'); return;}
+    render();
+  });
+
+  /* ---------- panel ---------- */
+  var elCtrls=document.getElementById('ctrls'), elTaskBtns=document.getElementById('taskBtns');
+  (function build(){
+    var h='';
+    CTRL.forEach(function(c){
+      h+='<div class="field"><span>'+c[1]+'</span><div class="seg" role="group" aria-label="'+c[1]+'">';
+      c[2].forEach(function(o){h+='<button type="button" data-set="'+c[0]+':'+o[0]+'" aria-pressed="false">'+o[1]+'</button>';});
+      h+='</div></div>';
+    });
+    elCtrls.innerHTML=h;
+    var t='';
+    Object.keys(TASKS).forEach(function(k){t+='<button type="button" data-task="'+k+'" aria-pressed="false"><strong>'+TASKS[k].name+'</strong></button>';});
+    elTaskBtns.innerHTML=t;
+  })();
+  elCtrls.addEventListener('click',function(e){
+    var b=e.target.closest('[data-set]'); if(!b)return;
+    var kv=b.getAttribute('data-set').split(':'); S[kv[0]]=kv[1]; render();
+  });
+  elTaskBtns.addEventListener('click',function(e){
+    var b=e.target.closest('[data-task]'); if(!b)return;
+    B.task=b.getAttribute('data-task'); syncPanel();
+  });
+  function fmt(ms){return (ms/1000).toFixed(1).replace('.',',')+' dtk';}
+  function syncMeter(){
+    document.getElementById('mTime').textContent=fmt(B.elapsed);
+    document.getElementById('mTaps').textContent=B.taps;
+    document.getElementById('mMiss').textContent=B.misses;
+  }
+  function syncPanel(){
+    elCtrls.querySelectorAll('[data-set]').forEach(function(b){
+      var kv=b.getAttribute('data-set').split(':');
+      b.setAttribute('aria-pressed', S[kv[0]]===kv[1]?'true':'false');
+    });
+    elTaskBtns.querySelectorAll('[data-task]').forEach(function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-task')===B.task?'true':'false');
+    });
+    document.getElementById('taskText').textContent=TASKS[B.task].text+'  (dibacakan ke peserta)';
+    syncMeter();
+    var msg=document.getElementById('benchMsg');
+    msg.textContent = B.running ? (B.frozen?'Selesai. Pilih hasil lalu simpan.':'Sedang berjalan...') : '';
+  }
+  function freeze(){ if(B.running && !B.frozen){B.frozen=true; B.elapsed=performance.now()-B.t0; syncMeter();} }
+  setInterval(function(){ if(B.running && !B.frozen){B.elapsed=performance.now()-B.t0; syncMeter();} },100);
+
+  document.getElementById('btnStart').addEventListener('click',function(){
+    if(document.getElementById('applyPreset').checked){
+      var p=TASKS[B.task].preset; Object.keys(p).forEach(function(k){S[k]=p[k];});
+    }
+    S.screen='launcher'; S.pin='';
+    B.running=true; B.frozen=false; B.taps=0; B.misses=0; B.elapsed=0; B.t0=performance.now();
+    render();
+  });
+  document.getElementById('btnStop').addEventListener('click',function(){ freeze(); syncPanel(); });
+  document.getElementById('btnMiss').addEventListener('click',function(){ if(B.running&&!B.frozen){B.misses++; syncMeter();} });
+  document.getElementById('btnSave').addEventListener('click',function(){
+    if(!B.running||!B.frozen){document.getElementById('benchMsg').textContent='Selesaikan tugas dulu.'; return;}
+    B.rows.push({p:document.getElementById('pid').value||'-', t:B.task, s:(B.elapsed/1000).toFixed(1), k:B.taps, m:B.misses, h:document.getElementById('outcome').value});
+    B.running=false; B.frozen=false; B.elapsed=0; B.taps=0; B.misses=0;
+    drawRows(); syncPanel();
+  });
+  document.getElementById('btnReset').addEventListener('click',function(){S.screen='launcher'; S.pin=''; render();});
+  function drawRows(){
+    var tb=document.getElementById('rows'), h='', tsv='Peserta\tTugas\tWaktu (dtk)\tKetukan\tSalah ketuk\tHasil\n';
+    if(!B.rows.length){h='<tr><td colspan="6" style="color:var(--ink-2)">Belum ada data.</td></tr>';}
+    B.rows.forEach(function(r){
+      h+='<tr><td>'+esc(r.p)+'</td><td>'+r.t+'</td><td>'+r.s+'</td><td>'+r.k+'</td><td>'+r.m+'</td><td>'+r.h+'</td></tr>';
+      tsv+=[r.p,r.t,r.s,r.k,r.m,r.h].join('\t')+'\n';
+    });
+    tb.innerHTML=h; document.getElementById('tsv').value=B.rows.length?tsv:'';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  document.getElementById('btnCopy').addEventListener('click',function(){
+    var ta=document.getElementById('tsv'); ta.focus(); ta.select();
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).catch(function(){});} }catch(err){}
+  });
+  document.getElementById('btnClear').addEventListener('click',function(){B.rows=[]; drawRows();});
+
+  render(); drawRows();
+})();
+</script>
+</body>
+</html>
